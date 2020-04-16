@@ -2,7 +2,7 @@
 /*
  * $Id$
  * 
- * written by Manuel Kasper <mk@neon1.net> for Monzoon Networks AG
+ * written by Hari Haran <hari@haran.in> for Margo Networks Pvt Ltd
  */
 
 error_reporting(0);
