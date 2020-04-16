@@ -1,6 +1,6 @@
 <?php
 /*
- * written by Nicolas Debrigode, Hexanet SAS
+ * written by Hari Haran, Margo Networks Pvt Ltd
  */
 
 error_reporting(0);
