@@ -2,7 +2,7 @@ AS-Stats v1.6 (2014-09-12)
 ==========================
 
 A simple tool to generate per-AS traffic graphs from NetFlow/sFlow records  
-by Manuel Kasper <mk@neon1.net> for Monzoon Networks AG
+by Hari Haran <hari@haran.in> for Margo Networks Pvt Ltd
 
 
 Update 2017-02-15
