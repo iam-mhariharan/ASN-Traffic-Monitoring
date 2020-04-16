@@ -132,7 +132,7 @@ Add a cronjob to run the following command (preferably every hour).
 # joe /etc/cron.d/as-stats
 
 /opt/as-stats/bin/rrd-extractstats.pl /opt/as-stats/rrd /opt/as-stats/conf/knownlinks /opt/as-stats/asstats_day.txt
-/opt/as-stats/bin/rrd-extractstats.pl /opt/as-stats/rrd /opt/as-stats/conf/knownlinks /opt/as-stats/asstats_month.txt 720
+/opt/as-stats/bin/rrd-extractstats.pl /opt/as-stats/rrd /opt/as-stats/conf/knownlinks /opt/as-stats/asstats_month.txt
 
 2. Enable the web interface:
 Enable the web interface to see all the graphs:
