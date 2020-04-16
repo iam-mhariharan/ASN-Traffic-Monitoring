@@ -1,3 +1,4 @@
+
 AS-Stats v1.6 (2014-09-12)
 ==========================
 
@@ -8,6 +9,150 @@ by Hari Haran <hari@haran.in> for Margo Networks Pvt Ltd
 Update 2017-02-15
 -----------------
 I currently don't have time to maintain AS-Stats. There have been some (merged) contributions since the last release, so you may want to download the latest repository version instead of the v1.6 release. Also, Nicolas Debrigode has released a more modern Web UI for AS-Stats: https://github.com/nidebr/as-stats-gui
+
+
+
+Getting started with AS-Stats
+
+You can download AS-Stats at Github, where they have documentation explaining all the prerequisites and the installation process. Below is a quick guide to the commands you need to use to run AS-Stats in your network.
+
+For the installation, I am using Ubuntu 14.04.5 LTS.
+
+1. Install the dependencies:
+
+apt-get install librrds-perl librrd-dev rrdtool apache2 php5
+make gcc git libapache2-mod-php5 php5-mcrypt -y
+
+The program comes with a default Perl installation, but you may need to install a few extra Perl modules. Check them from cpan:
+
+# cpan install File::Find::Rule
+# cpan install Net::sFlow
+# cpan install IO::Select
+# cpan install IO::Socket
+# cpan install Scalar::Util
+
+Download AS-Stats from github:
+
+# cd /opt/
+# git clone https://github.com/iam-mhariharan/ASN-Traffic-Monitoring.git
+
+Put all the config and rrd files in an /opt/as-stats directory:
+
+# cd /opt/as-stats
+
+Create a “known links” file with the following information about each link that you want to appear in your AS stats. We can use the sample knownlinks file and modify it:
+
+# joe /opt/as-stats/conf/knownlinks
+
+Delete all sample config and add the following line (replace 198.51.100.1 with your router IP).
+
+# Router IP      SNMP ifindex[/VLAN]  tag      description      color sampling rate
+198.51.100.1          1              uplink      uplink        A6CEE3    1
+
+Get the SNMP index from your router. In this case, we are generating a graph on interface GigabitEthernet0/0/0, that’s why we use Ifindex 1 in the knownlinks file.
+
+router-core01#show snmp mib ifmib ifindex
+GigabitEthernet0/0/0: Ifindex = 1
+GigabitEthernet0/0/2: Ifindex = 3
+VoIP-Null0: Ifindex = 6
+Loopback0: Ifindex = 8
+Null0: Ifindex = 7
+GigabitEthernet0/0/1: Ifindex = 2
+GigabitEthernet0: Ifindex = 5
+GigabitEthernet0/0/3: Ifindex = 4
+
+Create a directory to hold the per-AS RRD files:
+
+# mkdir /opt/as-stats/rrd
+# chmod 0777 /opt/as-stats/rrd
+
+Now run the AS-Stats:
+
+# nohup /opt/as-stats/bin/asstatd.pl -P 0 -p 9000 -r /opt/AS-Stats/rrd -k /opt/AS-Stats/conf/knownlinks &
+
+Check the process:
+
+# ps -aux | grep perl
+
+root      24554    605  0 15:12 ?        00:00:00 /usr/bin/perl -w
+/opt/AS-Stats/bin/asstatd.pl -P 0 -p 9000 -r /opt/AS-Stats/rrd -k /opt/AS-Stats/conf/knownlinks
+
+By default, asstatd.pl will listen on port 9000 (UDP) for NetFlow datagrams, and on port 6343 (UDP) for sFlow datagrams. Here we only enable NetFlow.
+
+# netstat -ntnpl | grep 9000
+
+udp        0      0 0.0.0.0:9000            0.0.0.0:*
+
+Now we will forward the flow. For this example, we will use the Flexible NetFlow command:
+
+flow exporter AS-STATS
+destination 198.51.100.27 !ip address of as-stats server
+source GigabitEthernet0/0/0
+transport udp 9000
+!
+flow monitor IPV4-AS-STATS
+exporter AS-STATS
+cache timeout active 300
+cache entries 16384
+record netflow ipv4 as
+!
+flow monitor IPV6-AS-STATS
+exporter AS-STATS
+cache timeout active 300
+cache entries 16384
+record netflow ipv6 as
+!
+sampler AS-STATS-SM
+mode random 1 out-of 10000
+!
+interface GigabitEthernet0/0/5
+ip flow monitor IPV4-AS-STATS input
+ipv6 flow monitor IPV6-AS-STATS input
+!
+
+After three to four minutes, you should see RRD files popping up in the /opt/as-stats/rrd folder. If you don’t, try checking with tcmdump. The following filter will help you to get the desired output.
+
+# tcpdump -n dst port 9000 -vv
+
+tcpdump: listening on eth0, link-type EN10MB (Ethernet), capture
+size 65535 bytes
+13:35:40.971315 IP (tos 0x0, ttl 250, id 3815, offset 0, flags
+[none], proto UDP (17), length 168)
+198.51.100.1.50293 > 198.51.100.27.9000: [udp sum ok] UDP,
+length 140
+13:35:41.971506 IP (tos 0x0, ttl 250, id 3816, offset 0, flags
+[none], proto UDP (17), length 112)
+198.51.100.1.50293 > 198.51.100.27.9000: [udp sum ok] UDP,
+length 84
+13:35:42.971845 IP (tos 0x0, ttl 250, id 3817, offset 0, flags
+[none], proto UDP (17), length 256)
+198.51.100.1.50293 > 198.51.100.27.9000: [udp sum ok] UDP,
+length 228
+
+Add a cronjob to run the following command (preferably every hour).
+
+# joe /etc/cron.d/as-stats
+
+/opt/as-stats/bin/rrd-extractstats.pl /opt/as-stats/rrd /opt/as-stats/conf/knownlinks /opt/as-stats/asstats_day.txt
+/opt/as-stats/bin/rrd-extractstats.pl /opt/as-stats/rrd /opt/as-stats/conf/knownlinks /opt/as-stats/asstats_month.txt 720
+
+2. Enable the web interface:
+Enable the web interface to see all the graphs:
+
+# cp -r www/ /var/www/html/as-stats/
+
+Edit config.inc and set all the paths especially $rrdpath, $daystatsfile and $knownlinksfile.
+
+# vi /var/www/html/as-stats/config.inc
+
+$rrdpath = "/opt/as-stats/rrd";
+$daystatsfile = "/opt/as-stats/asstats_day.txt";
+
+$knownlinksfile = "/opt/as-stats/conf/knownlinks";
+
+Now, wait a few minutes to get enough flow data to generate your graphs. When ready, you can browse the web interface:
+
+http:// 198.51.100.27/as-stats/
 
 
 How it works
