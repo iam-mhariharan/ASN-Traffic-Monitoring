@@ -2,7 +2,7 @@
 /*
  * $Id$
  * 
- * (c) 2008 Monzoon Networks AG. All rights reserved.
+ * (c) 2008 Margo Networks Pvt Ltd. All rights reserved.
  */
 
 require_once('func.inc');
