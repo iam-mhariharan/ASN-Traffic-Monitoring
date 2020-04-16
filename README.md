@@ -8,20 +8,18 @@ by Hari Haran <hari@haran.in> for Margo Networks Pvt Ltd
 
 Update 2017-02-15
 -----------------
-I currently don't have time to maintain AS-Stats. There have been some (merged) contributions since the last release, so you may want to download the latest repository version instead of the v1.6 release. Also, Nicolas Debrigode has released a more modern Web UI for AS-Stats: https://github.com/nidebr/as-stats-gui
-
+I currently don't have time to maintain AS-Stats. There have been some (merged) contributions since the last release, so you may want to download the latest repository version instead of the v1.6 release. Also, Hari Haran has released a more modern Web UI for AS-Stats: https://github.com/nidebr/as-stats-gui
 
 
 Getting started with AS-Stats
 
 You can download AS-Stats at Github, where they have documentation explaining all the prerequisites and the installation process. Below is a quick guide to the commands you need to use to run AS-Stats in your network.
 
-For the installation, I am using Ubuntu 14.04.5 LTS.
+For the installation, I am using Ubuntu 16.04.6 LTS.
 
 1. Install the dependencies:
 
-apt-get install librrds-perl librrd-dev rrdtool apache2 php5
-make gcc git libapache2-mod-php5 php5-mcrypt -y
+apt-get install librrds-perl librrd-dev rrdtool apache2 php7.0 make gcc git libapache2-mod-php7.0 php7.0-mcrypt -y
 
 The program comes with a default Perl installation, but you may need to install a few extra Perl modules. Check them from cpan:
 
